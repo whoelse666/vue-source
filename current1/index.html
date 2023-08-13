@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vue2</title>
+    <!-- <script src='./prev.js'></script> -->
+    <script type="module">
+      // import { Vue } from './vue2.js';
+      import { Vue } from "./myvue2.js";
+      let vm = new Vue({
+        el: document.querySelector("#app"),
+        data: {
+          message: "Hello Luyi",
+          num: 35
+        },
+        methods: {
+          increase() {
+            console.log('increase',);
+            this.num++;
+          }
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div id="app">
+      <h1 class="test">{{message}}</h1>
+      <h2>{{num}}</h2>
+      <input type="text" v-model="message" />
+      <input type="number" v-model="num" />
+      <button v-on:click="increase">【+】</button>
+    </div>
+  </body>
+</html>

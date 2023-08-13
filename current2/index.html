@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue 3</title>
+    <script type="module">
+        // import { ref, reactive, mount, computed } from './vue3.js';
+        import { ref, reactive, mount, computed } from './vue3_test.js';
+        const App = {
+            $data: null,
+            // 主运行流程
+            setup() {
+                let count = ref(0);
+                let time = reactive({ seconds: 0 });
+                let com = computed(() => `get computed: ${
+                    count.value + time.seconds
+                }`);
+
+                setInterval(() => {
+                    time.seconds++;
+                }, 1000);
+
+                setInterval(() => {
+                    count.value++
+                }, 1000);
+
+                return {
+                    count, 
+                    time, 
+                    com
+                }
+            },
+            render() {
+                return `
+                <h1>Reactive: </h1>
+                <h3>this is ref data: ${this.$data.count.value}</h3>
+                `
+                // return `
+                // <h1>Reactive: </h1>
+                // <h3>this is reactive data: ${this.$data.time.seconds}</h3>
+                // <h3>this is ref data: ${this.$data.count.value}</h3>
+                // <h3>this is computed data: ${this.$data.com.value}</h3>
+                // `
+            }
+        };
+        mount(App, document.getElementById('app'))
+    </script>
+</head>
+<body>
+    <div id="app"></div>
+</body>
+</html>
