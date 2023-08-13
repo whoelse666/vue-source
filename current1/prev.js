@@ -9,7 +9,7 @@ const handler = () => {
         // 恰好，fn 执行，并且 get 函数触发。
         // 也就是说，fn 中，引用了 track 的数据，也就是说，我要把这个收集起来。
         reactions.push(deps);
-        console.log("reactions", reactions);
+        console.log("reactions.length==", reactions.length);
       }
       return Reflect.get(target, key, descriptor);
     },
@@ -17,7 +17,7 @@ const handler = () => {
       const res = Reflect.set(target, key, recevier);
       reactions.forEach(item => item());
       return res;
-    }
+    },
     // set(target, key, value, descriptor) {
     //    const res = Reflect.set(target, key, value, descriptor);
     //   reactions.forEach(item => item());
@@ -50,12 +50,14 @@ function effect(fn) {
 /************  test  *************/
 const initData = { count: 0 };
 
-const data = track(initData);
+// const data = track(initData);
+const data = walk(initData, handler);
 // effect 的参数，是一个函数，如果这个函数用到了 被 track
 // 的数据，那么修改数据，会让副作用函数执行。
 // 如果这个fn执行的时候，并且触发了get,我就把这个函数，收集起来。
 effect(() => {
- console.log(data.count); // get
+  // console.log("effect"); // get
+  console.log(data.count); // get
 });
 
 data.count = 1;
