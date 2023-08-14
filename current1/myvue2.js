@@ -7,27 +7,29 @@ Vue.prototype.__init = function (options) {
   this.$el = options.el;
   this.$data = options.data;
   this.$methods = options.methods;
-  proxy(this, this.$data) //TODO:代理 this.a -> this.data.a
-  observer(this.$data); //TODO:监听 data 下面的属性,
-  new Compiler(this)
-}
+  //TAG:代理 this.a -> this.data.a
+  proxy(this, this.$data);
+  //TAG:监听 data 下面的属性,
+  observer(this.$data);
+  new Compiler(this);
+};
 
-
+// TAG : 不是new Proxy
 function proxy(target, data) {
   Array.from(Object.keys(data)).forEach(key => {
     Object.defineProperty(target, key, {
       enumerable: true,
       configurable: true,
       get: function () {
-        return data[key]
+        return data[key];
       },
       set: function (newVal) {
         if (newVal !== data[key]) {
-          data[key] = newVal
+          data[key] = newVal;
         }
-      },
-    })
-  })
+      }
+    });
+  });
 }
 
 function observer(data) {
@@ -36,18 +38,18 @@ function observer(data) {
 
 class Observer {
   constructor(data) {
-    this.walk(data)
+    this.walk(data);
   }
 
   walk(data) {
     if (data && typeof data === 'object') {
-      Array.from(Object.keys(data)).forEach((key) => this.defineReactive(data, key, data[key]))
+      Array.from(Object.keys(data)).forEach(key => this.defineReactive(data, key, data[key]));
     }
   }
 
   defineReactive(data, key, value) {
     let that = this;
-    this.walk(value)
+    this.walk(value);
     // 每一个数据，都给你一个依赖的数组。
     let dep = new Dep();
     Object.defineProperty(data, key, {
@@ -55,23 +57,21 @@ class Observer {
       configurable: true,
       get() {
         if (Dep.target) {
-          dep.add(Dep.target)
+          dep.add(Dep.target);
         }
-        return value
+        return value;
       },
       set(newVal) {
         if (newVal !== value) {
           // data[key] = newVal
           value = newVal;
           that.walk(newVal);
-          dep.notify()
+          dep.notify();
         }
-      },
-    })
+      }
+    });
   }
-
 }
-
 
 class Dep {
   constructor() {
@@ -83,27 +83,24 @@ class Dep {
   }
 
   notify() {
-    this.watchers.forEach(watch => watch.update())
+    this.watchers.forEach(watch => watch.update());
   }
 }
 
-
 class Watcher {
   constructor(vm, key, cb) {
-
     this.vm = vm; // vue的实例
     this.key = key;
     this.cb = cb;
-    //TODO this 是每一个 new Watcher 实例
+    //TAG this 是每一个 new Watcher 实例
     Dep.target = this;
     this.__old = vm[key];
     Dep.target = null;
-
   }
 
   update() {
     let newVal = this.vm[this.key];
-    if (this.__old !== newVal) this.cb(newVal)
+    if (this.__old !== newVal) this.cb(newVal);
   }
 }
 
@@ -112,7 +109,7 @@ class Compiler {
     this.el = vm.$el;
     this.vm = vm;
     this.methods = vm.$methods;
-    this.compile(vm.$el)
+    this.compile(vm.$el);
   }
 
   compile(el) {
@@ -121,17 +118,18 @@ class Compiler {
     Array.from(childNodes).forEach(node => {
       // 如果是文本节点
       if (node.nodeType === 3) {
-        this.compileText(node)
+        this.compileText(node);
       } else if (node.nodeType === 1) {
-        this.compileElement(node)
+        this.compileElement(node);
       }
 
       if (node.childNodes && node.childNodes.length) this.compile(node);
-    })
+    });
   }
 
   compileText(node) {
     // 我们只考虑 {{ message }}
+        console.log('node.textContent', node.textContent);
     let reg = /\{\{(.+?)\}\}/;
     let value = node.textContent;
     if (reg.test(value)) {
@@ -139,7 +137,7 @@ class Compiler {
       node.textContent = value.replace(reg, this.vm[key]);
       new Watcher(this.vm, key, val => {
         node.textContent = val;
-      })
+      });
     }
   }
 
@@ -151,27 +149,21 @@ class Compiler {
           // v-on:, v-model
           attrName = attrName.indexOf(':') > -1 ? attrName.substr(5) : attrName.substr(2);
           let key = attr.value;
-          this.update(node, key, attrName, this.vm[key])
+          this.update(node, key, attrName, this.vm[key]);
         }
-      })
+      });
     }
   }
 
   update(node, key, attrName, value) {
-    if (attrName === "model") {
+    if (attrName === 'model') {
       node.value = value;
-      new Watcher(this.vm, key, val => node.value = val);
+      new Watcher(this.vm, key, val => (node.value = val));
       node.addEventListener('input', () => {
-        this.vm[key] = node.value
-      })
+        this.vm[key] = node.value;
+      });
     } else if (attrName === 'click') {
-      node.addEventListener(attrName, this.methods[key].bind(this.vm))
+      node.addEventListener(attrName, this.methods[key].bind(this.vm));
     }
   }
 }
-
-
-
-
-
-

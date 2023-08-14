@@ -8,16 +8,17 @@
     <!-- <script src='./prev.js'></script> -->
     <script type="module">
       // import { Vue } from './vue2.js';
-      import { Vue } from "./myvue2.js";
+      // import { Vue } from "./myvue2.js";
+      import { Vue } from './test.js';
       let vm = new Vue({
-        el: document.querySelector("#app"),
+        el: document.querySelector('#app'),
         data: {
-          message: "Hello Luyi",
+          message: 'Hello Luyi',
           num: 35
         },
         methods: {
           increase() {
-            console.log('increase',);
+            console.log('increase', this.num);
             this.num++;
           }
         }
