@@ -1,3 +1,21 @@
+/*
+ * ****整体思路实现流程****
+ *1. 实现 mount 挂在到#app ,在页面显示
+ *2.将 setup->return 对象 挂载转到$data
+ *3.将data 对象的变量读取值,(先不考虑更新响应,)
+ *  3.1 reactive 实现: 用到 Proxy 代理  get,set
+ *  3.2 ref: 返回一个实例 RefImpl 包括 get,set
+ *  3.3 computed 先简单看成一个包装过的 可以有多个 ref 或者reactive 的计算结果的 ,增加了缓存;
+ *
+ * 然后考虑更新响应式
+ * get 需要收集依赖, set 执行 收集的依赖
+ * 利用 Map WeakMap 特性存储;
+ * 4.1 每一个 ref.value 或reactive的每个属性(至少被调用一次) 对应一个 targetMap[target] ->depsMap
+ * 4.2 每一个 depsMap 的值 (ref->value  reactive 每个属性)对应一个dep
+ * 4.3 dep 数组存储所有用到 dep每一项的数组
+ *
+ */
+
 let activeEffect = null;
 const targetMap = new WeakMap();
 
@@ -22,7 +40,10 @@ function track(target, key) {
   if (!dep) {
     if (!dep) depsMap.set(key, (dep = new Set()));
   }
+
   if (!dep.has(activeEffect)) dep.add(activeEffect);
+  console.log( key, dep);
+
   /* 
 WeakMap 与 Map 在 API 上的区别主要是两个，
 一是没有遍历操作（即没有keys()、values()和entries()方法），也没有size属性
@@ -108,7 +129,7 @@ export function computed(fn) {
 }
 
 function effect(fn, options = {}) {
-   let __effect = new ReactiveEffect(fn);
+  let __effect = new ReactiveEffect(fn);
   options.lazy || __effect.run();
   return __effect;
 }
