@@ -15,23 +15,27 @@
         setup() {
           let count = ref(0);
           let time = reactive({ seconds: 0 });
-          let time2 = reactive({ aaa: 1111});
+          let time2 = reactive({ aaa: 1111 });
           let com = computed(() => `get computed: ${count.value + time.seconds}`);
 
-          // setInterval(() => {
-          //   time.seconds++;
-          //   count.value++;
-          // }, 2000);
+          setInterval(() => {
+            // time.seconds++;
+            // count.value++;
+            console.log(   time.seconds++,
+            count.value++ );
+            
+          }, 2000);
 
           return {
             count,
-            time,time2,
+            time,
+            time2,
             com
           };
         },
         render() {
           return `
-                <h3>this is reactive data: ${this.$data.time2.aaa}</h3>
+                <h3>this is reactive time2 data: ${this.$data.time2.aaa}</h3>
                 <h3>this is reactive data: ${this.$data.time.seconds}</h3>
                  <h3>this is ref data: ${this.$data.count.value}</h3>
                 <h3>this is computed data: ${this.$data.com.value}</h3>

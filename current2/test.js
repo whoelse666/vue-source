@@ -14,8 +14,6 @@ function isObject(data) {
 }
 
 function track(target, key) {
-  if (key == 'value') console.log('console', targetMap);
-
   let depsMap = targetMap.get(target);
   if (!depsMap) {
     targetMap.set(target, (depsMap = new Map()));
@@ -34,8 +32,8 @@ WeakMap 与 Map 在 API 上的区别主要是两个，
 function trigger(target, key) {
   const depsMap = targetMap.get(target);
   if (depsMap) {
-    // (depsMap.get(key) || []).forEach(activeEffect => activeEffect.run());
-    (depsMap.get(key) || []).forEach(activeEffectItem => activeEffectItem && activeEffectItem());
+    (depsMap.get(key) || []).forEach(activeEffect => activeEffect.run());
+    // (depsMap.get(key) || []).forEach(activeEffectItem => activeEffectItem && activeEffectItem());
   }
 }
 
@@ -52,6 +50,7 @@ function update(ins, el) {
 }
 
 export function reactive(data) {
+  if (!isObject(data)) return 'data 不是对象';
   // return data;
   return new Proxy(data, {
     get(target, key, receiver) {
@@ -60,21 +59,22 @@ export function reactive(data) {
       return isObject(ret) ? reactive(ret) : ret;
     },
     set(target, key, value, receiver) {
-      if (target[key] !== value) {
-        Reflect.set(target, key, value, receiver);
-        trigger(target, key);
-        return true
-      }
+      Reflect.set(target, key, value, receiver);
+      trigger(target, key);
+      return true;
     },
     deleteProperty(target, key) {
       const ret = Reflect.deleteProperty(target, key);
+      trigger(target, key);
       return ret;
     },
     has(target, key) {
       const ret = Reflect.has(target, key);
+      track(target, key);
       return ret;
     },
     ownKeys(target) {
+      track(target, key);
       return Reflect.ownKeys(target);
     }
   });
@@ -96,14 +96,28 @@ export function ref(val) {
   }
   return new RefImpl(val);
 }
-export function computed(cb) {
-  return cb();
+export function computed(fn) {
+  let __computed;
+  const e = effect(fn, { lazy: true });
+  __computed = {
+    get value() {
+      return e.run();
+    }
+  };
+  return __computed;
 }
 
-function effect(fn) {
-  const obj = {
-    activeEffect: fn
-  };
-  activeEffect = fn;
-  return obj;
+function effect(fn, options = {}) {
+   let __effect = new ReactiveEffect(fn);
+  options.lazy || __effect.run();
+  return __effect;
+}
+class ReactiveEffect {
+  constructor(fn) {
+    this.fn = fn;
+  }
+  run() {
+    activeEffect = this; // this is __effect
+    return this.fn();
+  }
 }
